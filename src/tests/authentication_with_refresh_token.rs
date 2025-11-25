@@ -280,7 +280,7 @@ async fn get_private_page_unauthenticated() {
 async fn get_private_page_authenticated() {
     let app = AxumApp::new(routes(AppState::new()));
     let mut server = app.spawn_test_server().unwrap();
-    server.do_save_cookies();
+    server.save_cookies();
 
     server
         .post("/api/login")
@@ -308,7 +308,7 @@ async fn get_hybrid_page_unauthenticated() {
 async fn get_hybrid_page_authenticated() {
     let app = AxumApp::new(routes(AppState::new()));
     let mut server = app.spawn_test_server().unwrap();
-    server.do_save_cookies();
+    server.save_cookies();
 
     server
         .post("/api/login")
@@ -327,7 +327,7 @@ async fn get_hybrid_page_authenticated() {
 async fn expired_access_token() {
     let app = AxumApp::new(routes(AppState::new()));
     let mut server = app.spawn_test_server().unwrap();
-    server.do_save_cookies();
+    server.save_cookies();
 
     server
         .post("/api/login")
@@ -362,7 +362,7 @@ async fn expired_access_token() {
 async fn login_then_logout() {
     let app = AxumApp::new(routes(AppState::new()));
     let mut server = app.spawn_test_server().unwrap();
-    server.do_save_cookies();
+    server.save_cookies();
 
     let response = server.get("/hybrid").await;
     response.assert_status_ok();

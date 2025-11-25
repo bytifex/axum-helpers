@@ -1,10 +1,32 @@
-use std::{future::Future, pin::Pin, sync::Arc};
+use std::{convert::Infallible, future::Future, sync::Arc};
 
-use axum::{extract::FromRequestParts, http::StatusCode};
+use axum::{
+    extract::{FromRequestParts, OptionalFromRequestParts},
+    http::StatusCode,
+};
 
 use super::auth_layer::AccessTokenVerificationResultExtension;
 
 pub struct LoginInfoExtractor<LoginInfoType: Clone + Send + Sync + 'static>(pub Arc<LoginInfoType>);
+
+impl<StateType, LoginInfoType> OptionalFromRequestParts<StateType>
+    for LoginInfoExtractor<LoginInfoType>
+where
+    LoginInfoType: Clone + Send + Sync + 'static,
+{
+    type Rejection = Infallible;
+
+    fn from_request_parts(
+        parts: &mut axum::http::request::Parts,
+        state: &StateType,
+    ) -> impl Future<Output = Result<Option<Self>, Self::Rejection>> + Send {
+        let result =
+            <LoginInfoExtractor<LoginInfoType> as FromRequestParts<StateType>>::from_request_parts(
+                parts, state,
+            );
+        async move { Ok(result.await.ok()) }
+    }
+}
 
 impl<StateType, LoginInfoType> FromRequestParts<StateType> for LoginInfoExtractor<LoginInfoType>
 where
@@ -12,15 +34,10 @@ where
 {
     type Rejection = StatusCode;
 
-    fn from_request_parts<'life0, 'life1, 'async_trait>(
-        parts: &'life0 mut axum::http::request::Parts,
-        _state: &'life1 StateType,
-    ) -> Pin<Box<dyn Future<Output = Result<Self, Self::Rejection>> + Send + 'async_trait>>
-    where
-        'life0: 'async_trait,
-        'life1: 'async_trait,
-        Self: 'async_trait,
-    {
+    fn from_request_parts(
+        parts: &mut axum::http::request::Parts,
+        _state: &StateType,
+    ) -> impl Future<Output = Result<Self, Self::Rejection>> + Send {
         let login_info = parts
             .extensions
             .get::<AccessTokenVerificationResultExtension<LoginInfoType>>()
@@ -34,6 +51,6 @@ where
                 ))
             });
 
-        Box::pin(async move { login_info })
+        async move { login_info }
     }
 }

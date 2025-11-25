@@ -1,4 +1,4 @@
-use std::{future::Future, pin::Pin};
+use std::future::Future;
 
 use axum::{extract::FromRequestParts, http::StatusCode};
 
@@ -9,15 +9,10 @@ pub struct RefreshTokenExtractor(pub RefreshToken);
 impl<StateType> FromRequestParts<StateType> for RefreshTokenExtractor {
     type Rejection = StatusCode;
 
-    fn from_request_parts<'life0, 'life1, 'async_trait>(
-        parts: &'life0 mut axum::http::request::Parts,
-        _state: &'life1 StateType,
-    ) -> Pin<Box<dyn Future<Output = Result<Self, Self::Rejection>> + Send + 'async_trait>>
-    where
-        'life0: 'async_trait,
-        'life1: 'async_trait,
-        Self: 'async_trait,
-    {
+    fn from_request_parts(
+        parts: &mut axum::http::request::Parts,
+        _state: &StateType,
+    ) -> impl Future<Output = Result<Self, Self::Rejection>> + Send {
         let refresh_token = parts
             .extensions
             .get::<RefreshTokenVerificationResultExtension>()

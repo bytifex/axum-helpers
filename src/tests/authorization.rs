@@ -181,7 +181,7 @@ async fn api_logout(
 async fn get_page_with_access_policy() {
     let app = AxumApp::new(routes(AppState::new()));
     let mut server = app.spawn_test_server().unwrap();
-    server.do_save_cookies();
+    server.save_cookies();
 
     server
         .post("/api/login")
@@ -200,7 +200,7 @@ async fn get_page_with_access_policy() {
 async fn get_page_with_incorrect_access_policy() {
     let app = AxumApp::new(routes(AppState::new()));
     let mut server = app.spawn_test_server().unwrap();
-    server.do_save_cookies();
+    server.save_cookies();
 
     server
         .post("/api/login")
