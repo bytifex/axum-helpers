@@ -13,7 +13,6 @@ tokio = "1.48.0"
 log = "0.4.28"
 http-body = "1.0.1"
 time = "0.3.44"
-async-trait = "0.1.89"
 
 [dev-dependencies]
 axum-test = "18.3.0"

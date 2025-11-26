@@ -1,6 +1,5 @@
-use std::{borrow::Borrow, ops::Deref, sync::Arc};
+use std::{borrow::Borrow, future::Future, ops::Deref, sync::Arc};
 
-use async_trait::async_trait;
 use axum::http::StatusCode;
 use tokio::time::Duration;
 
@@ -86,35 +85,36 @@ impl AsRef<str> for RefreshToken {
     }
 }
 
-#[async_trait]
 pub trait AuthHandler<LoginInfoType: Send + Sync>: Sized + Clone + Send + Sync + 'static {
     /// Update access token is called for every request that contains a access token
-    async fn verify_access_token(
+    fn verify_access_token(
         &mut self,
         access_token: &AccessToken,
-    ) -> Result<LoginInfoType, StatusCode>;
+    ) -> impl Future<Output = Result<LoginInfoType, StatusCode>> + Send;
 
     /// Update access token is called for every request that contains a valid access token.
     /// The returned access token is sent for the client.
-    async fn update_access_token(
+    fn update_access_token(
         &mut self,
         access_token: &AccessToken,
         login_info: &Arc<LoginInfoType>,
-    ) -> Option<(AccessToken, Duration)>;
-
+    ) -> impl Future<Output = Option<(AccessToken, Duration)>> + Send;
     /// Revoke access token is called when the auth layer receives a logout response from a request handler.
-    async fn revoke_access_token(
+    fn revoke_access_token(
         &mut self,
         access_token: &AccessToken,
         login_info: &Arc<LoginInfoType>,
-    );
+    ) -> impl Future<Output = ()> + Send;
 
     /// Verify refresh token is called for every request that contains a refresh token.
-    async fn verify_refresh_token(
+    fn verify_refresh_token(
         &mut self,
         refresh_token: &RefreshToken,
-    ) -> Result<(), StatusCode>;
+    ) -> impl Future<Output = Result<(), StatusCode>> + Send;
 
     /// Revoke refresh token is called when the auth layer receives a logout response from a request handler.
-    async fn revoke_refresh_token(&mut self, refresh_token: &RefreshToken);
+    fn revoke_refresh_token(
+        &mut self,
+        refresh_token: &RefreshToken,
+    ) -> impl Future<Output = ()> + Send;
 }

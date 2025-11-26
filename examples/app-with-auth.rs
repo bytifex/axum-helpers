@@ -1,6 +1,5 @@
 use std::{collections::BTreeMap, future::Future, net::ToSocketAddrs, sync::Arc, time::Duration};
 
-use async_trait::async_trait;
 use axum::{
     extract::State,
     http::StatusCode,
@@ -81,7 +80,6 @@ impl AppState {
     }
 }
 
-#[async_trait]
 impl AuthHandler<LoginInfo> for AppState {
     async fn verify_access_token(
         &mut self,
