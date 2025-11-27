@@ -86,7 +86,9 @@ impl AsRef<str> for RefreshToken {
 }
 
 pub trait AuthHandler<LoginInfoType: Send + Sync>: Sized + Clone + Send + Sync + 'static {
-    /// Update access token is called for every request that contains a access token
+    /// Verify access token is called for every request that contains an access token
+    /// and is expected to return the associated login info if the token is valid.
+    /// If the token is invalid, an error with the appropriate status code is returned.
     fn verify_access_token(
         &mut self,
         access_token: &AccessToken,
@@ -99,6 +101,7 @@ pub trait AuthHandler<LoginInfoType: Send + Sync>: Sized + Clone + Send + Sync +
         access_token: &AccessToken,
         login_info: &Arc<LoginInfoType>,
     ) -> impl Future<Output = Option<(AccessToken, Duration)>> + Send;
+
     /// Revoke access token is called when the auth layer receives a logout response from a request handler.
     fn revoke_access_token(
         &mut self,
@@ -107,6 +110,7 @@ pub trait AuthHandler<LoginInfoType: Send + Sync>: Sized + Clone + Send + Sync +
     ) -> impl Future<Output = ()> + Send;
 
     /// Verify refresh token is called for every request that contains a refresh token.
+    /// If the token is invalid, an error with the appropriate status code is returned.
     fn verify_refresh_token(
         &mut self,
         refresh_token: &RefreshToken,
